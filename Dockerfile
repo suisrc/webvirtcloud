@@ -2,16 +2,33 @@ FROM debian:bullseye-slim
 
 LABEL maintainer="suisrc@outlook.com"
 
+EXPOSE 80
+EXPOSE 6080
+
 ARG SRV_HOME=/srv
 ARG S6_RELEASE=v3.1.2.0
 
 # linux and softs
-RUN apt update && apt install --no-install-recommends -y \
-    sudo ca-certificates curl git procps jq bash net-tools iputils-ping zsh vim nano ntpdate locales openssh-server xz-utils libatomic1 \
-    p7zip fontconfig gcc dpkg build-essential libz-dev zlib1g-dev &&\
-    sed -i "s/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g" /etc/locale.gen && locale-gen &&\
-    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*
+RUN apt-get update -qqy \
+    && DEBIAN_FRONTEND=noninteractive apt-get -qyy install \
+    --no-install-recommends \
+    apt-get install ca-certificates curl ntpdate locales \
+    git \
+    python3-venv \
+    python3-dev \
+    python3-lxml \
+    libvirt-dev \
+    zlib1g-dev \
+    nginx \
+    pkg-config \
+    gcc \
+    libldap2-dev \
+    libssl-dev \
+    libsasl2-dev \
+    libsasl2-modules \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# 
 # =============================================================================================
 # s6-overlay
 RUN S6_RURL="https://github.com/just-containers/s6-overlay/releases" &&\
@@ -25,6 +42,45 @@ RUN S6_RURL="https://github.com/just-containers/s6-overlay/releases" &&\
 ENTRYPOINT ["/init"]
 # =============================================================================================
 # webvirtcolud
+WORKDIR /srv/webvirtcloud
+
+# Creating the user and usergroup
+ARG USERNAME=www-data
+RUN groupadd --gid 1001 $USERNAME && \
+    useradd  --uid 1001 --gid $USERNAME -m -s /bin/bash $USERNAME   && \
+    echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
+    chmod 0440 /etc/sudoers.d/$USERNAME && chmod g+rw /home
+
+RUN curl -fSL --compressed https://github.com/suisrc/webvirtcloud/archive/refs/tags/v0.0.1.tar.gz | \
+    tar -xz -C /srv/webvirtcloud --strip-components=1 && \
+    chown -R www-data:www-data /srv/webvirtcloud
+
+# Setup webvirtcloud
+RUN python3 -m venv venv && \
+    . venv/bin/activate && \
+    pip3 install -U pip && \
+    pip3 install wheel && \
+    pip3 install -r conf/requirements.txt && \
+    pip3 cache purge && \
+    chown -R www-data:www-data /srv/webvirtcloud
+
+RUN . venv/bin/activate && \
+    python3 manage.py migrate && \
+    python3 manage.py collectstatic --noinput && \
+    chown -R www-data:www-data /srv/webvirtcloud
+
+# Setup Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
+RUN  chown -R www-data:www-data /var/lib/nginx &&\
+     cp conf/nginx/webvirtcloud.conf /etc/nginx/conf.d/
+
+# Register services to runit
+RUN mkdir /etc/services.d/nginx && \
+    mkdir /etc/services.d/webvirt && \
+    mkdir /etc/services.d/novnc && \
+    echo '#!/bin/sh\nnginx -g "daemon off;"' /etc/services.d/nginx/run && \
+    cp conf/runit/webvirtcloud.sh /etc/services.d/webvirt/run && \
+    cp conf/runit/novncd.sh /etc/services.d/novnc/run
 
 
 
