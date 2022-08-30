@@ -12,7 +12,7 @@ ARG S6_RELEASE=v3.1.2.0
 RUN apt-get update -qqy \
     && DEBIAN_FRONTEND=noninteractive apt-get -qyy install \
     --no-install-recommends \
-    apt-get install ca-certificates curl ntpdate locales \
+    ca-certificates curl ntpdate locales \
     git \
     python3-venv \
     python3-dev \
