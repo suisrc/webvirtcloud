@@ -1,68 +1,30 @@
-FROM phusion/baseimage:jammy-1.0.0
+FROM debian:bullseye-slim
 
-EXPOSE 80
-EXPOSE 6080
+LABEL maintainer="suisrc@outlook.com"
 
-# Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
+ARG SRV_HOME=/srv
+ARG S6_RELEASE=v3.1.2.0
+
+# linux and softs
+RUN apt update && apt install --no-install-recommends -y \
+    sudo ca-certificates curl git procps jq bash net-tools iputils-ping zsh vim nano ntpdate locales openssh-server xz-utils libatomic1 \
+    p7zip fontconfig gcc dpkg build-essential libz-dev zlib1g-dev &&\
+    sed -i "s/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g" /etc/locale.gen && locale-gen &&\
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*
+
+# =============================================================================================
+# s6-overlay
+RUN S6_RURL="https://github.com/just-containers/s6-overlay/releases" &&\
+    S6_APP="${S6_RURL}/download/${S6_RELEASE}/s6-overlay-x86_64.tar.xz" &&\
+    S6_CFG="${S6_RURL}/download/${S6_RELEASE}/s6-overlay-noarch.tar.xz" &&\
+    curl -o /tmp/s6-cfg.tar.xz -L "${S6_CFG}" && tar -C / -Jxpf /tmp/s6-cfg.tar.xz &&\
+    curl -o /tmp/s6-app.tar.xz -L "${S6_APP}" && tar -C / -Jxpf /tmp/s6-app.tar.xz &&\
+    rm -rf  /tmp/*
+    #tar xzf /tmp/s6.tar.gz -C / --exclude='./bin' && tar xzf /tmp/s6.tar.gz -C /usr ./bin
+
+ENTRYPOINT ["/init"]
+# =============================================================================================
+# webvirtcolud
 
 
-RUN echo 'APT::Get::Clean=always;' >> /etc/apt/apt.conf.d/99AutomaticClean
 
-RUN apt-get update -qqy \
-    && DEBIAN_FRONTEND=noninteractive apt-get -qyy install \
-	--no-install-recommends \
-	git \
-	python3-venv \
-	python3-dev \
-	python3-lxml \
-	libvirt-dev \
-	zlib1g-dev \
-	nginx \
-	pkg-config \
-	gcc \
-	libldap2-dev \
-	libssl-dev \
-	libsasl2-dev \
-	libsasl2-modules \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-COPY . /srv/webvirtcloud
-RUN chown -R www-data:www-data /srv/webvirtcloud
-
-# Setup webvirtcloud
-WORKDIR /srv/webvirtcloud
-RUN python3 -m venv venv && \
-	. venv/bin/activate && \
-	pip3 install -U pip && \
-	pip3 install wheel && \
-	pip3 install -r conf/requirements.txt && \
-	pip3 cache purge && \
-	chown -R www-data:www-data /srv/webvirtcloud
-
-RUN . venv/bin/activate && \
-    python3 manage.py migrate && \
-	python3 manage.py collectstatic --noinput && \
-	chown -R www-data:www-data /srv/webvirtcloud
-
-# Setup Nginx
-RUN printf "\n%s" "daemon off;" >> /etc/nginx/nginx.conf && \
-	rm /etc/nginx/sites-enabled/default && \
-	chown -R www-data:www-data /var/lib/nginx
-
-COPY conf/nginx/webvirtcloud.conf /etc/nginx/conf.d/
-
-# Register services to runit
-RUN	mkdir /etc/service/nginx && \
-	mkdir /etc/service/nginx-log-forwarder && \
-	mkdir /etc/service/webvirtcloud && \
-	mkdir /etc/service/novnc
-COPY conf/runit/nginx				/etc/service/nginx/run
-COPY conf/runit/nginx-log-forwarder	/etc/service/nginx-log-forwarder/run
-COPY conf/runit/novncd.sh			/etc/service/novnc/run
-COPY conf/runit/webvirtcloud.sh		/etc/service/webvirtcloud/run
-
-# Define mountable directories.
-#VOLUME []
-
-WORKDIR /srv/webvirtcloud
