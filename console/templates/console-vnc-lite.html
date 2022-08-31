@@ -194,7 +194,7 @@
     if (port) {
         url += ':' + port;
     }
-    url += '/' + path;
+    url += path[0] == '/' ? path : ('/' + path);
 
     // Creating a new RFB object will start a new connection
     rfb = new RFB(document.getElementById('noVNC_container'), url,
