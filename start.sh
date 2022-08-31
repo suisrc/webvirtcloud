@@ -22,8 +22,10 @@ EOF
 fi
 echo ""
 echo "Your WebVirtCloud public key:"
-cat ~www-data/.ssh/id_rsa.pub
-echo ""
+echo "******************************************************************"
+echo "echo \"`cat ~www-data/.ssh/id_rsa.pub`\" >> ~/.ssh/authorized_keys"
+echo "******************************************************************"
+
 
 echo "Running supervisor ..."
 ## /etc/supervisor/supervisord.conf
