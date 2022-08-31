@@ -39,7 +39,7 @@ RUN mkdir -p /srv/webvirtcloud && \
 WORKDIR /srv/webvirtcloud
 # Setup webvirtcloud
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY *.sh /srv/webvirtcloud
+COPY *.sh /srv/webvirtcloud/
 
 RUN python3 -m venv venv && \
     . venv/bin/activate && \
