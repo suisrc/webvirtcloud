@@ -57,5 +57,5 @@ RUN python3 -m venv venv && \
     chmod +x /srv/start.sh && chmod +x /srv/startinit.sh
 
 
-CMD ["./start.sh"]
+CMD ["/srv/start.sh"]
 
