@@ -4,12 +4,13 @@ set -e
 
 if [ ! -f "/srv/webvirtcloud/webvirtcloud/settings.py" ]; then
     echo "init WebVirtCloud..."
-    ./startinit.sh # init
+    ../startinit.sh # init
 fi
 
 # generate ssh keys if necessary
 if [ ! -f ~www-data/.ssh/id_rsa ]; then
     echo "create WebVirtCloud ssh key:"
+    mkdir -p ~www-data/.ssh/
     ssh-keygen -b 4096 -t rsa -C webvirtcloud -N '' -f ~www-data/.ssh/id_rsa
     cat > ~www-data/.ssh/config << EOF
 Host *
@@ -24,8 +25,10 @@ echo "Your WebVirtCloud public key:"
 cat ~www-data/.ssh/id_rsa.pub
 echo ""
 
+echo "Running supervisor ..."
 ## /etc/supervisor/supervisord.conf
 supervisord -c /etc/supervisor/supervisord.conf
 
+echo "Running nginx ..."
 ## /etc/nginx/nginx.conf
 nginx -g "daemon off;"

@@ -8,6 +8,9 @@ EXPOSE 80
 RUN apt-get -qq update \
     #&& apt-get upgrade -y \
     && apt-get install -y \
+        procps \
+        net-tools \
+        iputils-ping \
         curl \
         sudo \
         ntpdate \
@@ -39,7 +42,7 @@ RUN mkdir -p /srv/webvirtcloud && \
 WORKDIR /srv/webvirtcloud
 # Setup webvirtcloud
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY *.sh /srv/webvirtcloud/
+COPY *.sh /srv/
 
 RUN python3 -m venv venv && \
     . venv/bin/activate && \
@@ -49,10 +52,9 @@ RUN python3 -m venv venv && \
     pip3 cache purge && \
     chown -R www-data:www-data /srv/webvirtcloud &&\
     chown -R www-data:www-data /var/lib/nginx &&\
-    cp conf/supervisor/*.conf /etc/supervisor/conf.d/ &&\
+    cp conf/supervisor/webvirtcloud.conf /etc/supervisor/conf.d/webvirtcloud.conf &&\
     cp conf/nginx/webvirtcloud.conf /etc/nginx/conf.d/ &&\
-    cp conf/nginx/debian_nginx.conf /etc/nginx/nginx.conf.bak &&\
-    chmod +x start.sh && chmod +x startinit.sh
+    chmod +x /srv/start.sh && chmod +x /srv/startinit.sh
 
 
 CMD ["./start.sh"]
