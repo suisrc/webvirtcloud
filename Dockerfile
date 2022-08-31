@@ -8,6 +8,7 @@ EXPOSE 80
 RUN apt-get -qq update \
     #&& apt-get upgrade -y \
     && apt-get install -y \
+        curl \
         sudo \
         ntpdate \
         locales \
