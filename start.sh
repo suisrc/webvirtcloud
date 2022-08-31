@@ -4,7 +4,7 @@ set -e
 
 if [ ! -f "/srv/webvirtcloud/webvirtcloud/settings.py" ]; then
     echo "init WebVirtCloud..."
-    ../startinit.sh # init
+    sudo -u www-data ../startinit.sh # init
 fi
 
 # generate ssh keys if necessary
