@@ -49,11 +49,11 @@ ENTRYPOINT ["/init"]
 WORKDIR /srv/webvirtcloud
 
 # Creating the user and usergroup
-ARG USERNAME=www-data
-RUN groupadd --gid 1001 $USERNAME && \
-    useradd  --uid 1001 --gid $USERNAME -m -s /bin/bash $USERNAME   && \
-    echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
-    chmod 0440 /etc/sudoers.d/$USERNAME && chmod g+rw /home
+# ARG USERNAME=www-data
+# RUN groupadd --gid 1001 $USERNAME && \
+#     useradd  --uid 1001 --gid $USERNAME -m -s /bin/bash $USERNAME   && \
+#     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
+#     chmod 0440 /etc/sudoers.d/$USERNAME && chmod g+rw /home
 
 RUN mkdir -p /srv/webvirtcloud && \
     curl -fSL --compressed https://github.com/suisrc/webvirtcloud/archive/refs/tags/v0.0.1.tar.gz | \
