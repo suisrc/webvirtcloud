@@ -6,7 +6,7 @@ EXPOSE 80
 EXPOSE 6080
 
 ARG SRV_HOME=/srv
-ARG S6_RELEASE=v3.1.2.0
+ARG S6_RELEASE=v3.1.2.1
 
 # linux and softs
 RUN apt-get update -qqy \
@@ -34,7 +34,6 @@ RUN apt-get update -qqy \
 RUN S6_RURL="https://github.com/just-containers/s6-overlay/releases" &&\
     S6_APP="${S6_RURL}/download/${S6_RELEASE}/s6-overlay-x86_64.tar.xz" &&\
     S6_CFG="${S6_RURL}/download/${S6_RELEASE}/s6-overlay-noarch.tar.xz" &&\
-    mkdir /tmp &&\
     curl -o /tmp/s6-cfg.tar.xz -L "${S6_CFG}" && tar -C / -Jxpf /tmp/s6-cfg.tar.xz &&\
     curl -o /tmp/s6-app.tar.xz -L "${S6_APP}" && tar -C / -Jxpf /tmp/s6-app.tar.xz &&\
     rm -rf  /tmp/*
@@ -52,7 +51,8 @@ RUN groupadd --gid 1001 $USERNAME && \
     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
     chmod 0440 /etc/sudoers.d/$USERNAME && chmod g+rw /home
 
-RUN curl -fSL --compressed https://github.com/suisrc/webvirtcloud/archive/refs/tags/v0.0.1.tar.gz | \
+RUN mkdir -p /srv/webvirtcloud && \
+    curl -fSL --compressed https://github.com/suisrc/webvirtcloud/archive/refs/tags/v0.0.1.tar.gz | \
     tar -xz -C /srv/webvirtcloud --strip-components=1 && \
     chown -R www-data:www-data /srv/webvirtcloud
 
