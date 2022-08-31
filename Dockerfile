@@ -33,7 +33,7 @@ RUN apt-get -qq update \
 
 # download webvirtcloud
 RUN mkdir -p /srv/webvirtcloud && \
-    curl -fSL --compressed https://github.com/suisrc/webvirtcloud/archive/refs/tags/v0.0.1.tar.gz | \
+    curl -fSL --compressed https://github.com/suisrc/webvirtcloud/archive/refs/tags/v0.0.2.tar.gz | \
     tar -xz -C /srv/webvirtcloud --strip-components=1 && \
     rm -Rf webvirtcloud/doc/ && \
     chown -R www-data:www-data /srv/webvirtcloud

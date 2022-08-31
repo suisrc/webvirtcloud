@@ -8,11 +8,11 @@ if [ ! -f "/srv/webvirtcloud/webvirtcloud/settings.py" ]; then
 fi
 
 # generate ssh keys if necessary
-if [ ! -f ~www-data/.ssh/id_rsa ]; then
+if [ ! -f "/var/www/.ssh/id_rsa" ]; then
     echo "create WebVirtCloud ssh key:"
-    mkdir -p ~www-data/.ssh/
-    ssh-keygen -b 4096 -t rsa -C webvirtcloud -N '' -f ~www-data/.ssh/id_rsa
-    cat > ~www-data/.ssh/config << EOF
+    mkdir -p /var/www/.ssh/
+    ssh-keygen -b 4096 -t rsa -C webvirtcloud -N '' -f /var/www/.ssh/id_rsa
+    cat > /var/www/.ssh/config << EOF
 Host *
 StrictHostKeyChecking no
 EOF
@@ -23,9 +23,9 @@ fi
 echo ""
 echo "Your WebVirtCloud public key:"
 echo "******************************************************************"
-echo "echo \"`cat ~www-data/.ssh/id_rsa.pub`\" >> ~/.ssh/authorized_keys"
+echo "echo \"`cat /var/www/.ssh/id_rsa.pub`\" >> ~/.ssh/authorized_keys"
 echo "******************************************************************"
-
+echo ""
 
 echo "Running supervisor ..."
 ## /etc/supervisor/supervisord.conf
